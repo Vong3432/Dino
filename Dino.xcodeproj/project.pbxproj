@@ -7,6 +7,8 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		3B4ACD8A27F4CAB70038FDF7 /* Dino.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3B4ACD8927F4CAB70038FDF7 /* Dino.swift */; };
+		3B4ACD8C27F4CFAC0038FDF7 /* Meteorite.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3B4ACD8B27F4CFAC0038FDF7 /* Meteorite.swift */; };
 		3B71888327EDF20A00A31115 /* DinoApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3B71888227EDF20A00A31115 /* DinoApp.swift */; };
 		3B71888527EDF20A00A31115 /* ContentView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3B71888427EDF20A00A31115 /* ContentView.swift */; };
 		3B71888727EDF20A00A31115 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 3B71888627EDF20A00A31115 /* Assets.xcassets */; };
@@ -21,6 +23,8 @@
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
+		3B4ACD8927F4CAB70038FDF7 /* Dino.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Dino.swift; sourceTree = "<group>"; };
+		3B4ACD8B27F4CFAC0038FDF7 /* Meteorite.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Meteorite.swift; sourceTree = "<group>"; };
 		3B71887F27EDF20A00A31115 /* Dino.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = Dino.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		3B71888227EDF20A00A31115 /* DinoApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DinoApp.swift; sourceTree = "<group>"; };
 		3B71888427EDF20A00A31115 /* ContentView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ContentView.swift; sourceTree = "<group>"; };
@@ -70,6 +74,8 @@
 				3BC42C7327EE3CA9004B6527 /* bgm.mp3 */,
 				3B71888227EDF20A00A31115 /* DinoApp.swift */,
 				3B71889027EDF23400A31115 /* GameScene.swift */,
+				3B4ACD8927F4CAB70038FDF7 /* Dino.swift */,
+				3B4ACD8B27F4CFAC0038FDF7 /* Meteorite.swift */,
 				3B71888427EDF20A00A31115 /* ContentView.swift */,
 				3B71888627EDF20A00A31115 /* Assets.xcassets */,
 				3B71889427EDFABC00A31115 /* SpriteSheet.swift */,
@@ -167,8 +173,10 @@
 				3B71889927EDFFE700A31115 /* SpriteKitContainer.swift in Sources */,
 				3B71889527EDFABC00A31115 /* SpriteSheet.swift in Sources */,
 				3B71889127EDF23400A31115 /* GameScene.swift in Sources */,
+				3B4ACD8A27F4CAB70038FDF7 /* Dino.swift in Sources */,
 				3B71888527EDF20A00A31115 /* ContentView.swift in Sources */,
 				3B71888327EDF20A00A31115 /* DinoApp.swift in Sources */,
+				3B4ACD8C27F4CFAC0038FDF7 /* Meteorite.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
