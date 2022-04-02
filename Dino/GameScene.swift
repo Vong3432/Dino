@@ -10,6 +10,14 @@ import SpriteKit
 import CoreMotion
 import SwiftUI
 
+struct PhysicsCategory {
+    static let All: UInt32 = UInt32.max
+    static let Block: UInt32 = 0b1
+    static let Dino: UInt32 = 0b01
+    static let Meteorite: UInt32 = 0b11
+    static let None: UInt32 = 0
+}
+
 enum GameState {
     case showingLogo
     case playing
@@ -18,26 +26,28 @@ enum GameState {
     case end
 }
 
-class GameScene: SKScene, SKPhysicsContactDelegate {
+class GameScene: SKScene {
     
-    // game states
+    // MARK: - Game States
     var logo: SKSpriteNode!
     var gameOver: SKSpriteNode!
     var gameState = GameState.showingLogo
-
+    
+    let timerPerRound = 60
+    
     private var timer = 60 {
         didSet {
             self.timerLabel.text = "\(self.timer)"
         }
     }
     
-    // fps
+    // MARK: - FPS
     var lastUpdateTime: TimeInterval = 0
     var fpsLabel = SKLabelNode(text: "FPS: 0")
     
     private let motionManager = CMMotionManager()
     
-    // screen objects
+    // MARK: - Screen objects
     fileprivate let frames: [SKTexture] = {
         let sheet = SpriteSheet(texture: SKTexture(imageNamed: "Dino"), rows: 1, columns: 24, spacing: 3, margin: 0)
         
@@ -58,18 +68,14 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
     var directionCircle = SKShapeNode(circleOfRadius: 5)
     var timerLabel = SKLabelNode(text: "60")
     
-    // bgm & effects
+    // MARK: - bgm & effects
     var background = SKSpriteNode(imageNamed: "bg")
     var backgroundMusic: SKAudioNode!
     
+    // MARK: - Delegates
     override func didMove(to view: SKView) {
         createLogos()
-    }
-    
-    func didBegin(_ contact: SKPhysicsContact) {
-        gameOver.alpha = 1
-        gameState = .dead
-        playBGM("home", type: "wav")
+        physicsWorld.contactDelegate = self
     }
     
     override func touchesBegan(_ touches: Set<UITouch>, with event: UIEvent?) {
@@ -90,7 +96,6 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
             let sequence = SKAction.sequence([fadeOut, wait, remove])
             logo.run(sequence)
         case .playing:
-            guard let view = view else { return }
             dino.jump()
             break
         case .dead:
@@ -98,9 +103,7 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
         case .pause:
             break
         case .end:
-            gameOver.alpha = 1
-            gameState = .end
-            playBGM("home", type: "wav")
+            toHomeScene()
             break
         }
     }
@@ -116,26 +119,45 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
     
 }
 
-extension GameScene {
-    func updateFPS(_ currentTime: TimeInterval) {
-        // update FPS
-        let deltaTime = currentTime - lastUpdateTime
-        let currentFPS = 1 / deltaTime
+extension GameScene: SKPhysicsContactDelegate {
+    func didBegin(_ contact: SKPhysicsContact) {
         
-        fpsLabel.text = "FPS: \(currentFPS.formatted())"
-        lastUpdateTime = currentTime
-    }
-    
-    func updateTimer() {
-        print(timer)
-        // update timer
-        if timer > 0 && gameState == .playing { timer -= 1 }
-        else if timer == 0 && gameState == .playing {
-            // if player have survived for 60 seconds
-            gameState = .end
+        guard let nodeA = contact.bodyA.node else { return }
+        guard let nodeB = contact.bodyB.node else { return }
+        
+        if nodeA.name == Meteorite.uniqueName && nodeA.position.y < frame.midY || nodeB.name == Dino.uniqueName {
+            explore(meteorite: nodeA)
         }
+        if nodeB.name == Meteorite.uniqueName && nodeB.position.y < frame.midY || nodeA.name == Dino.uniqueName {
+            explore(meteorite: nodeB)
+        }
+        
+        if nodeA.name == Meteorite.uniqueName && nodeB.name == Dino.uniqueName {
+            collisionBetween(dino: nodeB, meteorite: nodeA)
+        } else if nodeB.name == Meteorite.uniqueName && nodeA.name == Dino.uniqueName {
+            collisionBetween(dino: nodeA, meteorite: nodeB)
+        }
+        
     }
     
+    func collisionBetween(dino: SKNode, meteorite: SKNode) {
+        print("collide")
+    }
+    
+    func explore(meteorite: SKNode) {
+        let explosionTexture = SKTexture(imageNamed: "explosion")
+        let action = SKAction.setTexture(explosionTexture)
+        
+        let wait = SKAction.wait(forDuration: 1)
+        let seq = SKAction.sequence([action, wait, SKAction.removeFromParent()])
+        
+        meteorite.run(seq)
+    }
+}
+
+extension GameScene {
+    
+    // MARK: - Player movement handlers
     func handleDeviceMovement() {
         guard let data = motionManager.accelerometerData else { return }
         
@@ -154,15 +176,94 @@ extension GameScene {
         }
     }
     
+    // MARK: - Game states handlers
     func reset() {
-        timer = 60
-        removeAllChildren()
-        removeAllActions()
+        timer = timerPerRound
+        clear()
         motionManager.stopAccelerometerUpdates()
+    }
+    
+    func clear() {
+        removeAllActions()
+        removeAllChildren()
+        
+        directionCircle.setScale(1.0)
+        meteoriteGenerator.removeAllActions()
     }
     
     func pause() {
         motionManager.stopAccelerometerUpdates()
+    }
+    
+    func toHomeScene() {
+        pause()
+        clear()
+        
+        logo = SKSpriteNode(imageNamed: "logo")
+        logo.position = CGPoint(x: frame.midX, y: frame.midY)
+        logo.alpha = 1
+        
+        addChild(logo)
+        
+        gameOver.alpha = 0
+        gameState = .showingLogo
+        playBGM("home", type: "wav")
+    }
+    
+    
+    // MARK: - UI generation handlers
+    func setupGameScene() {
+        // transform the frame of scene into wall by providing physicsBody so that dino will not fall outside of the view
+        self.physicsBody = SKPhysicsBody(edgeLoopFrom: self.frame)
+        self.physicsBody?.categoryBitMask = PhysicsCategory.Block
+        self.physicsBody?.collisionBitMask = PhysicsCategory.Block
+        
+        fpsLabel.position = CGPoint(x: size.width / 10, y: size.height / 10)
+        fpsLabel.zPosition = 2
+        fpsLabel.fontSize = 21
+        
+        // minus 52 because (32+20, fontSize + padding)
+        timerLabel.position = CGPoint(x: frame.maxX - 52, y: frame.maxY - 52)
+        
+        timerLabel.fontSize = 32
+        timerLabel.fontName = "HelveticaNeue-Bold"
+        timerLabel.zPosition = 2
+        
+        addChild(fpsLabel)
+        addChild(timerLabel)
+        
+        updateTimer()
+    }
+    
+    func setupBg(_ view: SKView) {
+        // config background
+        background.zPosition = 1
+        background.size = view.frame.size
+        background.position = CGPoint(x: size.width / 2, y: size.height / 2)
+        
+        addChild(background)
+    }
+    
+    func setupDino() {
+        dino = Dino(texture: nil, color: .black, size: .zero)
+        dino.position = CGPoint(x: frame.midX, y: frame.midY)
+        
+        addChild(dino)
+    }
+    
+    func setupDirectionCircle() {
+        directionCircle.zPosition = 2.0
+        directionCircle.position = CGPoint(x: self.frame.midX, y: self.frame.maxY - 40)  //Middle of Screen
+        directionCircle.fillColor = SKColor.white
+        directionCircle.strokeColor = SKColor.black
+        
+        let delayAction = SKAction.wait(forDuration: TimeInterval(1)) // delay 2s
+        let scaleUpAction = SKAction.scale(by: 2, duration: 1)
+        let actionSequences = SKAction.sequence([delayAction, scaleUpAction])
+        
+        addChild(directionCircle)
+        
+        directionCircle.run(actionSequences)
     }
     
     func createLogos() {
@@ -191,48 +292,45 @@ extension GameScene {
         spawn(view)
     }
     
-    func setupGameScene() {
-        // transform the frame of scene into wall by providing physicsBody so that dino will not fall outside of the view
-        self.physicsBody = SKPhysicsBody(edgeLoopFrom: self.frame)
+    // MARK: - Utilities
+    func updateFPS(_ currentTime: TimeInterval) {
+        // update FPS
+        let deltaTime = currentTime - lastUpdateTime
+        let currentFPS = 1 / deltaTime
         
-        fpsLabel.position = CGPoint(x: size.width / 10, y: size.height / 10)
-        fpsLabel.zPosition = 2
-        fpsLabel.fontSize = 21
-        
-        // minus 52 because (32+20, fontSize + padding)
-        timerLabel.position = CGPoint(x: frame.maxX - 52, y: frame.maxY - 52)
-        
-        timerLabel.fontSize = 32
-        timerLabel.fontName = "HelveticaNeue-Bold"
-        timerLabel.zPosition = 2
-        
-        addChild(fpsLabel)
-        addChild(timerLabel)
-        
+        fpsLabel.text = "FPS: \(currentFPS.formatted())"
+        lastUpdateTime = currentTime
+    }
+    
+    func updateTimer() {
         // 1 wait action
         let wait1Second = SKAction.wait(forDuration: 1)
         // 2 decrement action
         let decrementTimer = SKAction.run { [weak self] in
-            self?.timer -= 1
+            guard let self = self else { return }
+            guard self.timer > 0 else {
+                self.toHomeScene()
+                return
+            }
+            
+            self.timer -= 1
         }
         // 3. wait + decrement
         let sequence = SKAction.sequence([wait1Second, decrementTimer])
         // 4. (wait + decrement) forever
         let repeatForever = SKAction.repeatForever(sequence)
-
+        
         // run it!
         self.run(repeatForever)
+//        // update timer
+//        if timer > 0 && gameState == .playing { timer -= 1 }
+//        else if timer == 0 && gameState == .playing {
+//            // if player have survived for 60 seconds
+//            gameState = .end
+//        }
     }
     
-    func setupBg(_ view: SKView) {
-        // config background
-        background.zPosition = 1
-        background.size = view.frame.size
-        background.position = CGPoint(x: size.width / 2, y: size.height / 2)
-        
-        addChild(background)
-    }
-    
+    // MARK: - BGM and effects
     func playBGM(_ name: String, type: String = "mp3") {
         // remove previous bgm if exist
         if backgroundMusic != nil {
@@ -245,27 +343,7 @@ extension GameScene {
         }
     }
     
-    func setupDino() {
-        dino = Dino(texture: nil, color: .black, size: .zero)
-        dino.position = CGPoint(x: frame.midX, y: frame.midY)
-        addChild(dino)
-    }
-    
-    func setupDirectionCircle() {
-        directionCircle.zPosition = 2.0
-        directionCircle.position = CGPoint(x: self.frame.midX, y: self.frame.maxY - 40)  //Middle of Screen
-        directionCircle.fillColor = SKColor.white
-        directionCircle.strokeColor = SKColor.black
-        
-        let delayAction = SKAction.wait(forDuration: TimeInterval(1)) // delay 2s
-        let scaleUpAction = SKAction.scale(by: 2, duration: 1)
-        let actionSequences = SKAction.sequence([delayAction, scaleUpAction])
-        
-        addChild(directionCircle)
-        directionCircle.run(actionSequences)
-    }
-    
-    /// Spawner method for the meteorites
+    // MARK: - Spawner method for the meteorites
     func spawn(_ view: SKView) {
         let wait = SKAction.wait(forDuration: 1, withRange: 0.4)
         let spawn = SKAction.run({self.generateMeteorite()})
@@ -275,29 +353,14 @@ extension GameScene {
         addChild(meteoriteGenerator)
     }
     
-    /// Method that creates meteorite
+    // MARK: - Method that creates meteorite
     func generateMeteorite() {
         // creating meteorite object
         meteorite = Meteorite(imageNamed: "flaming_meteor")
         meteorite.setup()
-        meteorite.position = CGPoint(x: frame.maxX, y: frame.maxY)
         
         addChild(meteorite)
         
-        // configure where to spawn and the angle to fall onto the ground
-        guard let meteorite = meteorite else { return }
-        let center = CGPoint(x: frame.midX, y: frame.midY)
-        let v1 = CGVector(dx: dino.position.x - center.x, dy: dino.position.y - center.y)
-        let v2 = CGVector(dx: meteorite.position.x - center.x, dy: meteorite.position.y - center.y)
-        let angle = atan2(v2.dy, v2.dx) - atan2(v1.dy, v1.dx)
-        //  let angle = cos(Double.pi)
-        let vector = CGVector(dx: -10 * cos(angle * Double.pi / 180), dy: 0)
-        
-        meteorite.physicsBody?.applyImpulse(vector)
-        
-        // remove after 2s
-        let wait = SKAction.wait(forDuration: 2)
-        let seq = SKAction.sequence([wait, SKAction.removeFromParent()])
-        meteorite.run(seq)
+        meteorite.fall(toward: dino, parentFrame: frame)
     }
 }

@@ -10,6 +10,8 @@ import SpriteKit
 
 
 class Dino: SKSpriteNode {
+    static let uniqueName = "Dino"
+    
     fileprivate let frames: [SKTexture] = {
         let sheet = SpriteSheet(texture: SKTexture(imageNamed: "Dino"), rows: 1, columns: 24, spacing: 3, margin: 0)
         
@@ -44,6 +46,17 @@ class Dino: SKSpriteNode {
         physicsBody = SKPhysicsBody(circleOfRadius: self.size.width / 2)
         physicsBody?.allowsRotation = false
         physicsBody?.restitution = 0.2
+        
+        name = Dino.uniqueName
+        
+        /**
+         The categoryBitMask sets the category that the sprite belongs to, whereas the collisionBitMask sets the category with which the sprite can collide with and not pass-through them.
+
+         For collision detection, you need to set the contactTestBitMask = collisionBitMask. Here, you set the categories of sprites with which you want the contact delegates to be called upon contact.
+         */
+        physicsBody?.contactTestBitMask = PhysicsCategory.Meteorite
+        physicsBody?.categoryBitMask = PhysicsCategory.Dino
+        physicsBody?.collisionBitMask = PhysicsCategory.Meteorite
         
         // animate sprite
         run(SKAction.repeatForever(openingAnimation))
