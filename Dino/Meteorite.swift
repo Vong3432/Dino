@@ -21,13 +21,13 @@ class Meteorite: SKSpriteNode {
         let body = SKPhysicsBody(circleOfRadius: texture.size().width / 2)
         body.affectedByGravity = true
         body.allowsRotation = false
-        body.isDynamic = true
+        body.isDynamic = false
         body.restitution = 0
         
-//        body.mass = 5 * 1010
+        //        body.mass = 5 * 1010
         /**
          The categoryBitMask sets the category that the sprite belongs to, whereas the collisionBitMask sets the category with which the sprite can collide with and not pass-through them.
-
+         
          For collision detection, you need to set the contactTestBitMask = collisionBitMask. Here, you set the categories of sprites with which you want the contact delegates to be called upon contact.
          */
         body.contactTestBitMask = PhysicsCategory.Dino
@@ -41,27 +41,34 @@ class Meteorite: SKSpriteNode {
     
     func fall(toward player: SKSpriteNode, parentFrame: CGRect) {
         
-        let minX = frame.minX
-        let maxX = frame.maxX
-        let randomX = Double.random(in: minX...maxX)
-        let center = CGPoint(x: frame.midX, y: frame.midY)
-        let fallDirectionFactor = randomX < center.x ? 1.0 : -1.0
+        // set initial x position
+        let minX = parentFrame.minX
+        let maxX = parentFrame.maxX
+        position = CGPoint(x: Double.random(in: minX...maxX), y: parentFrame.maxY)
         
-        // set the starting position of meteorite
-//        position = CGPoint(x: randomX, y: parentFrame.maxY)
-        position = CGPoint(x: randomX, y: parentFrame.maxY)
+        //        print(position.x)
+        let angle = findAngle(targetPosition: player.position)
+        zRotation = angle + (.pi / 2)
         
-        // calculate angle
-//        let angle = Double.random(in: 0...Double.pi * 2)
-        let angle = Double.pi
-        let magnitude:CGFloat = 20
-        zRotation = angle - 90
-
-        let dx = magnitude * cos(angle) * fallDirectionFactor
-        let dy = magnitude * sin(angle) * fallDirectionFactor
-        let vector = CGVector(dx: dx, dy: dy)
+        let radius = hypot(player.position.x - position.x, player.position.y - position.y)
+        let x = radius * cos(angle)
+        let y = radius * sin(angle)
         
-        physicsBody?.applyImpulse(vector)
+//        print(angle)
+        
+        let move = SKAction.moveBy(x: x, y: y, duration: 1)
+        let wait = SKAction.wait(forDuration: 5)
+        let remove = SKAction.removeFromParent()
+        let repeatForever = SKAction.repeatForever(move)
+        
+        let sequence = SKAction.sequence([repeatForever, wait, remove])
+        
+        run(sequence)
+    }
+    
+    private func findAngle(targetPosition: CGPoint) -> Double {
+        let angle = atan2(targetPosition.y - position.y, targetPosition.x - position.x)
+        return angle
     }
 }
 

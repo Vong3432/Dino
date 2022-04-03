@@ -57,6 +57,7 @@ class Dino: SKSpriteNode {
         physicsBody?.contactTestBitMask = PhysicsCategory.Meteorite
         physicsBody?.categoryBitMask = PhysicsCategory.Dino
         physicsBody?.collisionBitMask = PhysicsCategory.Meteorite
+        physicsBody?.usesPreciseCollisionDetection = true
         
         // animate sprite
         run(SKAction.repeatForever(openingAnimation))

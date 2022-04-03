@@ -345,7 +345,7 @@ extension GameScene {
     
     // MARK: - Spawner method for the meteorites
     func spawn(_ view: SKView) {
-        let wait = SKAction.wait(forDuration: 1, withRange: 0.4)
+        let wait = SKAction.wait(forDuration: 0.5, withRange: 0.1)
         let spawn = SKAction.run({self.generateMeteorite()})
         
         let sequence = SKAction.sequence([wait, spawn])
