@@ -32,8 +32,11 @@ class GameScene: SKScene {
     var logo: SKSpriteNode!
     var gameOver: SKSpriteNode!
     var gameState = GameState.showingLogo
+    var currentHealth: Int = 0
     
+    let maxHealthPerRound = 3
     let timerPerRound = 60
+    var collidedMeteorite = [SKNode]()
     
     private var timer = 60 {
         didSet {
@@ -67,6 +70,7 @@ class GameScene: SKScene {
     var meteorite: Meteorite!
     var directionCircle = SKShapeNode(circleOfRadius: 5)
     var timerLabel = SKLabelNode(text: "60")
+    
     
     // MARK: - bgm & effects
     var background = SKSpriteNode(imageNamed: "bg")
@@ -119,7 +123,9 @@ class GameScene: SKScene {
     
 }
 
+// MARK: - Contact delegate
 extension GameScene: SKPhysicsContactDelegate {
+    
     func didBegin(_ contact: SKPhysicsContact) {
         
         guard let nodeA = contact.bodyA.node else { return }
@@ -141,10 +147,18 @@ extension GameScene: SKPhysicsContactDelegate {
     }
     
     func collisionBetween(dino: SKNode, meteorite: SKNode) {
-        print("collide")
+        currentHealth -= 1
+        drawHealth()
     }
     
     func explore(meteorite: SKNode) {
+        
+        guard collidedMeteorite.contains(meteorite) == false else {
+            return
+        }
+        
+        collidedMeteorite.append(meteorite)
+        
         let explosionTexture = SKTexture(imageNamed: "explosion")
         let action = SKAction.setTexture(explosionTexture)
         
@@ -161,23 +175,17 @@ extension GameScene {
     func handleDeviceMovement() {
         guard let data = motionManager.accelerometerData else { return }
         
-        if UIDevice.current.orientation == UIDeviceOrientation.landscapeLeft {
-            // switch side
-            //            dino.xScale = dino.xScale * -1
-            dino.move(with: CGVector(dx: 100 * CGFloat(data.acceleration.y), dy: 0))
-            
-        } else if UIDevice.current.orientation == UIDeviceOrientation.landscapeRight {
-            //            dino.xScale = dino.xScale * 1
-            dino.move(with: CGVector(dx: -100 * CGFloat(data.acceleration.y), dy: 0))
-        }
+        let dy = data.acceleration.x * 0
+        let dx = data.acceleration.y * -1000
         
-        if UIDevice.current.orientation == .faceUp {
-            dino.jump()
-        }
+//        physicsWorld.gravity = CGVector(dx: dx, dy: dy)
+        dino.move(with: CGVector(dx: dx, dy: dy))
     }
     
     // MARK: - Game states handlers
     func reset() {
+        collidedMeteorite = []
+        currentHealth = maxHealthPerRound
         timer = timerPerRound
         clear()
         motionManager.stopAccelerometerUpdates()
@@ -229,10 +237,54 @@ extension GameScene {
         timerLabel.fontName = "HelveticaNeue-Bold"
         timerLabel.zPosition = 2
         
+        drawHealth()
+        
         addChild(fpsLabel)
         addChild(timerLabel)
         
         updateTimer()
+    }
+    
+    func drawHealth() {
+        
+        guard currentHealth > 0 else {
+            self.toHomeScene()
+            return
+        }
+        
+        let screenPadding = 20.0
+        let screenCgPoint = CGPoint(x: frame.minX + screenPadding, y: frame.maxY - screenPadding)
+        let healthSize = CGSize(width: 32, height: 32)
+        var count = 1.0
+        
+        // clear
+        for child in children {
+            if child.name == Heart.FILLED || child.name == Heart.EMPTY {
+                child.removeFromParent()
+            }
+        }
+        
+        for _ in 0..<currentHealth {
+            let heart = SKSpriteNode(imageNamed: "heart_fill")
+            heart.name = Heart.FILLED
+            heart.size = healthSize
+            heart.zPosition = 2
+            heart.position = CGPoint(x: (screenCgPoint.x * count * 1.25) + screenPadding, y: screenCgPoint.y - screenPadding)
+            count += 1.0
+            
+            addChild(heart)
+        }
+        
+        for _ in Int(count)..<maxHealthPerRound + 1 {
+            let heart = SKSpriteNode(imageNamed: "heart_empty")
+            heart.name = Heart.EMPTY
+            heart.size = healthSize
+            heart.zPosition = 2
+            heart.position = CGPoint(x: (screenCgPoint.x * count * 1.25) + screenPadding, y: screenCgPoint.y - screenPadding)
+            count += 1.0
+            
+            addChild(heart)
+        }
     }
     
     func setupBg(_ view: SKView) {
@@ -246,7 +298,7 @@ extension GameScene {
     
     func setupDino() {
         dino = Dino(texture: nil, color: .black, size: .zero)
-        dino.position = CGPoint(x: frame.midX, y: frame.midY)
+        dino.position = CGPoint(x: frame.midX, y: frame.minY)
         
         addChild(dino)
     }
@@ -322,12 +374,6 @@ extension GameScene {
         
         // run it!
         self.run(repeatForever)
-//        // update timer
-//        if timer > 0 && gameState == .playing { timer -= 1 }
-//        else if timer == 0 && gameState == .playing {
-//            // if player have survived for 60 seconds
-//            gameState = .end
-//        }
     }
     
     // MARK: - BGM and effects
@@ -345,7 +391,7 @@ extension GameScene {
     
     // MARK: - Spawner method for the meteorites
     func spawn(_ view: SKView) {
-        let wait = SKAction.wait(forDuration: 0.5, withRange: 0.1)
+        let wait = SKAction.wait(forDuration: 0.6, withRange: 0.1)
         let spawn = SKAction.run({self.generateMeteorite()})
         
         let sequence = SKAction.sequence([wait, spawn])

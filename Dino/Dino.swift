@@ -45,7 +45,7 @@ class Dino: SKSpriteNode {
         
         physicsBody = SKPhysicsBody(circleOfRadius: self.size.width / 2)
         physicsBody?.allowsRotation = false
-        physicsBody?.restitution = 0.2
+        physicsBody?.restitution = 0.0
         
         name = Dino.uniqueName
         
