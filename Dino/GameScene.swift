@@ -34,7 +34,7 @@ class GameScene: SKScene {
     var gameState = GameState.showingLogo
     var currentHealth: Int = 0
     
-    let maxHealthPerRound = 3
+    var maxHealthPerRound = 3
     let timerPerRound = 60
     var collidedMeteorite = [SKNode]()
     
@@ -85,22 +85,8 @@ class GameScene: SKScene {
     override func touchesBegan(_ touches: Set<UITouch>, with event: UIEvent?) {
         switch gameState {
         case .showingLogo:
-            reset()
-            
-            // change to playing state
-            gameState = .playing
-            
-            guard let view = view else { return }
-            startGameScene(view)
-            
-            let fadeOut = SKAction.fadeOut(withDuration: 0.5)
-            let remove = SKAction.removeFromParent()
-            let wait = SKAction.wait(forDuration: 0.5)
-            
-            let sequence = SKAction.sequence([fadeOut, wait, remove])
-            logo.run(sequence)
+            break
         case .playing:
-            dino.jump()
             break
         case .dead:
             break
@@ -169,8 +155,66 @@ extension GameScene: SKPhysicsContactDelegate {
     }
 }
 
-extension GameScene {
+extension GameScene: ButtonDelegate {
+    // MARK: - Button delegates
+    func buttonClicked(sender: Button) {
+        print("you clicked the button named \(sender.name!)")
+        
+        guard let name = sender.name else { return }
+        
+        switch name {
+        case "btn-easy":
+            maxHealthPerRound = 6
+        case "btn-normal":
+            maxHealthPerRound = 3
+        case "btn-hard":
+            maxHealthPerRound = 1
+        default:
+            fatalError()
+        }
+        
+        reset()
+        
+        // change to playing state
+        gameState = .playing
+        
+        guard let view = view else { return }
+        startGameScene(view)
+        
+        let fadeOut = SKAction.fadeOut(withDuration: 0.5)
+        let remove = SKAction.removeFromParent()
+        let wait = SKAction.wait(forDuration: 0.5)
+        
+        let sequence = SKAction.sequence([fadeOut, wait, remove])
+        logo.run(sequence)
+    }
     
+    func createDifficultiesButtons() {
+        let easyBtn = Button(texture: SKTexture(imageNamed: "easybtn"))
+        easyBtn.name = "btn-easy"
+        easyBtn.position = CGPoint(x: frame.midX - 200, y: frame.midY)
+        easyBtn.delegate = self
+        easyBtn.zPosition = 2
+        
+        let normalBtn = Button(texture: SKTexture(imageNamed: "mediumbtn"))
+        normalBtn.name = "btn-normal"
+        normalBtn.position = CGPoint(x: frame.midX, y: frame.midY)
+        normalBtn.delegate = self
+        normalBtn.zPosition = 2
+        
+        let hardBtn = Button(texture: SKTexture(imageNamed: "elitebtn"))
+        hardBtn.name = "btn-hard"
+        hardBtn.position = CGPoint(x: frame.midX + 200, y: frame.midY)
+        hardBtn.delegate = self
+        hardBtn.zPosition = 2
+        
+        addChild(easyBtn)
+        addChild(normalBtn)
+        addChild(hardBtn)
+    }
+}
+
+extension GameScene {
     // MARK: - Player movement handlers
     func handleDeviceMovement() {
         guard let data = motionManager.accelerometerData else { return }
@@ -178,7 +222,7 @@ extension GameScene {
         let dy = data.acceleration.x * 0
         let dx = data.acceleration.y * -1000
         
-//        physicsWorld.gravity = CGVector(dx: dx, dy: dy)
+        //        physicsWorld.gravity = CGVector(dx: dx, dy: dy)
         dino.move(with: CGVector(dx: dx, dy: dy))
     }
     
@@ -212,6 +256,8 @@ extension GameScene {
         logo.alpha = 1
         
         addChild(logo)
+        
+        createDifficultiesButtons()
         
         gameOver.alpha = 0
         gameState = .showingLogo
@@ -321,6 +367,7 @@ extension GameScene {
     func createLogos() {
         logo = SKSpriteNode(imageNamed: "logo")
         logo.position = CGPoint(x: frame.midX, y: frame.midY)
+        logo.alpha = 0.6
         addChild(logo)
         
         gameOver = SKSpriteNode(imageNamed: "gameover")
@@ -328,6 +375,7 @@ extension GameScene {
         gameOver.alpha = 0
         addChild(gameOver)
         
+        createDifficultiesButtons()
         playBGM("home", type: "wav")
     }
     

@@ -17,6 +17,7 @@
 		3B71889127EDF23400A31115 /* GameScene.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3B71889027EDF23400A31115 /* GameScene.swift */; };
 		3B71889527EDFABC00A31115 /* SpriteSheet.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3B71889427EDFABC00A31115 /* SpriteSheet.swift */; };
 		3B71889927EDFFE700A31115 /* SpriteKitContainer.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3B71889827EDFFE700A31115 /* SpriteKitContainer.swift */; };
+		3B79575728084E7300D25DB9 /* Button.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3B79575628084E7300D25DB9 /* Button.swift */; };
 		3BB1EB3327EE3C8A004A56A9 /* Bugmintide.mp3 in Resources */ = {isa = PBXBuildFile; fileRef = 3BB1EB3227EE3C8A004A56A9 /* Bugmintide.mp3 */; };
 		3BC42C7427EE3CA9004B6527 /* bgm.mp3 in Resources */ = {isa = PBXBuildFile; fileRef = 3BC42C7327EE3CA9004B6527 /* bgm.mp3 */; };
 		3BC42C7627EE4203004B6527 /* EuropaIce.wav in Resources */ = {isa = PBXBuildFile; fileRef = 3BC42C7527EE4203004B6527 /* EuropaIce.wav */; };
@@ -35,6 +36,7 @@
 		3B71889027EDF23400A31115 /* GameScene.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GameScene.swift; sourceTree = "<group>"; };
 		3B71889427EDFABC00A31115 /* SpriteSheet.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SpriteSheet.swift; sourceTree = "<group>"; };
 		3B71889827EDFFE700A31115 /* SpriteKitContainer.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SpriteKitContainer.swift; sourceTree = "<group>"; };
+		3B79575628084E7300D25DB9 /* Button.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Button.swift; sourceTree = "<group>"; };
 		3BB1EB3027EE3C80004A56A9 /* Bugmintide.mp3 */ = {isa = PBXFileReference; lastKnownFileType = audio.mp3; path = Bugmintide.mp3; sourceTree = "<group>"; };
 		3BB1EB3227EE3C8A004A56A9 /* Bugmintide.mp3 */ = {isa = PBXFileReference; lastKnownFileType = audio.mp3; name = Bugmintide.mp3; path = ../../../../../../../Downloads/Bugmintide.mp3; sourceTree = "<group>"; };
 		3BC42C7327EE3CA9004B6527 /* bgm.mp3 */ = {isa = PBXFileReference; lastKnownFileType = audio.mp3; path = bgm.mp3; sourceTree = "<group>"; };
@@ -72,6 +74,7 @@
 		3B71888127EDF20A00A31115 /* Dino */ = {
 			isa = PBXGroup;
 			children = (
+				3B79575528084E6C00D25DB9 /* Components */,
 				3BC42C7727EE420C004B6527 /* home.wav */,
 				3BC42C7327EE3CA9004B6527 /* bgm.mp3 */,
 				3B71888227EDF20A00A31115 /* DinoApp.swift */,
@@ -97,6 +100,14 @@
 				3B71888927EDF20A00A31115 /* Preview Assets.xcassets */,
 			);
 			path = "Preview Content";
+			sourceTree = "<group>";
+		};
+		3B79575528084E6C00D25DB9 /* Components */ = {
+			isa = PBXGroup;
+			children = (
+				3B79575628084E7300D25DB9 /* Button.swift */,
+			);
+			path = Components;
 			sourceTree = "<group>";
 		};
 /* End PBXGroup section */
@@ -180,6 +191,7 @@
 				3B71888527EDF20A00A31115 /* ContentView.swift in Sources */,
 				3B6AEF6027FAED5600968327 /* Heart.swift in Sources */,
 				3B71888327EDF20A00A31115 /* DinoApp.swift in Sources */,
+				3B79575728084E7300D25DB9 /* Button.swift in Sources */,
 				3B4ACD8C27F4CFAC0038FDF7 /* Meteorite.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
