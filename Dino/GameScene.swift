@@ -133,24 +133,23 @@ extension GameScene: SKPhysicsContactDelegate {
     }
     
     func collisionBetween(dino: SKNode, meteorite: SKNode) {
+        guard collidedMeteorite.contains(meteorite) == false else {
+            return
+        }
+        
+        collidedMeteorite.append(meteorite)
         currentHealth -= 1
         drawHealth()
     }
     
     func explore(meteorite: SKNode) {
         
-        guard collidedMeteorite.contains(meteorite) == false else {
-            return
-        }
-        
-        collidedMeteorite.append(meteorite)
-        
         let explosionTexture = SKTexture(imageNamed: "explosion")
         let action = SKAction.setTexture(explosionTexture)
         
         let wait = SKAction.wait(forDuration: 1)
         let seq = SKAction.sequence([action, wait, SKAction.removeFromParent()])
-        
+
         meteorite.run(seq)
     }
 }
@@ -397,8 +396,9 @@ extension GameScene {
         // update FPS
         let deltaTime = currentTime - lastUpdateTime
         let currentFPS = 1 / deltaTime
+        let formattedFPS = String(format: "%.0f", currentFPS)
         
-        fpsLabel.text = "FPS: \(currentFPS.formatted())"
+        fpsLabel.text = "FPS: \(formattedFPS)"
         lastUpdateTime = currentTime
     }
     
